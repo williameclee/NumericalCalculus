@@ -3,14 +3,16 @@ function Fd = nDiffFd6(F,varargin)
 % INPUT:
 %   - F: The 1D array to be differentiated.
 %   - h: The uniform spacing between each element. The default value is 1.
+%   - order: The order of derivative. The default value is 1 (first 
+%     derivative); highest supported value is 2.
 %   - "boundary": The boundary conditions at ends of the array. If it is
 %     not "periodic", forward and backward differences will be utilised to
 %     achieve the same order of truincation error. The default value is
 %     "wall".
 % OUTPUT:
-%   - F_d1: The first derivative of the input array.
+%   - Fd: The derivative of the input array.
 % EXAMPLE:
-% Y_prime = nDiffFd6(Y,Dx,"boundary","periodic")
+% Y_prime = nDiffFd6(Y,Dx,"order",2,"boundary","periodic")
 
     h     = 1;
     order = 1;

@@ -4,7 +4,7 @@ function Fd = nDiffFd2(F,varargin)
 %   - F: The 1D array to be differentiated.
 %   - h: The uniform spacing between each element. The default value is 1.
 %   - order: The order of derivative. The default value is 1 (first 
-%     derivative).
+%     derivative); highest supported value is 2.
 %   - "boundary": The boundary conditions at ends of the array. If it is
 %     not "periodic", forward and backward differences will be utilised to
 %     achieve the same order of truincation error. The default value is
