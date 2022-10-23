@@ -1,4 +1,17 @@
 function F_d1 = nDiffFft(F,varargin)
+%% nDiffFft Differentiation with fast Fourier transformation 
+% INPUT:
+%   - F: The 1D array to be differentiated.
+%   - h: The uniform spacing between each element. The default value is 1.
+%   - order: The order of derivative. The default value is 1 (first 
+%     derivative).
+%   - overlap: The amount of overlapping grids if the arrray is periodic.
+%     The default value is 0 (no overlap).
+% OUTPUT:
+%   - F_d1: The first derivative of the input array.
+% EXAMPLE:
+% Y_prime = nDiffFft(Y,Dx,"order",1,"overlap",1)
+
     h       = 1;
     order   = 1;
     overlap = 0;

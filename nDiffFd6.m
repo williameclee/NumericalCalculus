@@ -1,4 +1,17 @@
 function F_d1 = nDiffFd6(F,varargin)
+%% nDiffFd6 Differentiation with six-point (central) finite difference
+% INPUT:
+%   - F: The 1D array to be differentiated.
+%   - h: The uniform spacing between each element. The default value is 1.
+%   - "boundary": The boundary conditions at ends of the array. If it is
+%     not "periodic", forward and backward differences will be utilised to
+%     achieve the same order of truincation error. The default value is
+%     "wall".
+% OUTPUT:
+%   - F_d1: The first derivative of the input array.
+% EXAMPLE:
+% Y_prime = nDiffFd6(Y,Dx,"boundary","periodic")
+
     h = 1;
     boundary = "wall";
 
