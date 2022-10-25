@@ -3,62 +3,114 @@ function Fd = nDiffFd6(F,varargin)
 % INPUT:
 %   - F: The 1D array to be differentiated.
 %   - h: The uniform spacing between each element. The default value is 1.
+%   - dimension: The dimsion along which the derivative of F is calculated. 
 %   - order: The order of derivative. The default value is 1 (first 
 %     derivative); highest supported value is 2.
-%   - "boundary": The boundary conditions at ends of the array. If it is
-%     not "periodic", forward and backward differences will be utilised to
+%   - overlap: The amount of overlapping grids if the arrray is periodic.
+%     The default value is 0 (no overlap).
+%   - boundary: The boundary conditions at ends of the array. If it is not 
+%     "periodic", forward and backward differences will be utilised to
 %     achieve the same order of truincation error. The default value is
 %     "wall".
 % OUTPUT:
 %   - Fd: The derivative of the input array.
 % EXAMPLE:
-% Y_prime = nDiffFd6(Y,Dx,"order",2,"boundary","periodic")
+% Y_prime = nDiffFd6(Y,Dx,"dimension",2,"order",2, ...
+%                    "overlap",0,"boundary","periodic")
 
-    h     = 1;
-    order = 1;
+    % Assigning default parameters
+    h        = 1;
+    dim      = 1;
+    order    = 1;
+    overlap  = 0;
     boundary = "wall";
-
+    % Updating parameters
     p = inputParser;
-        addRequired(p,'F');
-        addOptional(p,'h',h);
-        addOptional(p,'order',order);
-        addParameter(p,'boundary',boundary);
+        addRequired(p,"F");
+        addOptional(p,"h",h);
+        addOptional(p,"dimension",dim);
+        addOptional(p,"order",order);
+        addParameter(p,"overlap",overlap);
+        addParameter(p,"boundary",boundary);
         parse(p,F,varargin{:});
     F        = p.Results.F;
     h        = p.Results.h;
+    dim      = p.Results.dimension;
     order    = p.Results.order;
+    overlap  = p.Results.overlap;
     boundary = p.Results.boundary;
-
-    F = reshape(F,[1,length(F)]);
-
+    % Getting rid of overlapping grids
+    id      = repmat({':'},1,ndims(F));
+    id(dim) = {1:size(F,dim)-overlap};
+    F       = F(id{:});
+    % Reshaping the array if necessary
+    F_size = size(F);
+    if ismatrix(F) && F_size(1) == 1
+        F = reshape(F,[length(F),1]);
+    end
+    % Calculating the derivatives
     if order == 1 % first derivative
-        Fd = (+ 45*circshift(F,-1) - 45*circshift(F,1) ...
-              -  9*circshift(F,-2) +  9*circshift(F,2) ...
-              +  1*circshift(F,-3) -  1*circshift(F,3))/(60*h);
-        if ~strcmp(boundary,"periodic")
-            Fd(1:3)       = (- 147*F(1:3) + 360*F(2:4) ...
-                             - 450*F(3:5) + 400*F(4:6) ...
-                             - 225*F(5:7) +  72*F(6:8) ...
-                             - 10*F(7:9))/(60*h);
-            Fd(end-2:end) = (+ 147*F(end-2:end)   - 360*F(end-3:end-1) ...
-                             + 450*F(end-4:end-2) - 400*F(end-5:end-3) ...
-                             + 225*F(end-6:end-4) -  72*F(end-7:end-5) ...
-                             +  10*F(end-8:end-6))/(60*h);
+        % Central
+        Fd = (+  1*circshift(F,-3,dim) -  9*circshift(F,-2,dim) ...
+              + 45*circshift(F,-1,dim) - 45*circshift(F,+1,dim) ...
+              +  9*circshift(F,+2,dim) -  1*circshift(F,+3,dim))/(60*h);
+        if ~(strcmp(boundary,"periodic") || strcmp(boundary,"p"))
+            % Forward
+            % Forward
+            id      = repmat({':'},1,ndims(F));
+            id(dim) = {1:9};
+            F_f  = F(id{:});
+            Fd_f = (- 147*circshift(F_f,-0,dim) + 360*circshift(F_f,-1,dim) ...
+                    - 450*circshift(F_f,-2,dim) + 400*circshift(F_f,-3,dim) ...
+                    - 225*circshift(F_f,-4,dim) +  72*circshift(F_f,-5,dim) ...
+                    -  10*circshift(F_f,-6,dim))/(60*h);
+            id(dim) = {1:3};
+            Fd(id{:}) = Fd_f(id{:});
+            % Backward
+            id      = repmat({':'},1,ndims(F));
+            id(dim) = {size(F,dim)-8:size(F,dim)};
+            F_e  = F(id{:});
+            Fd_e = (+ 147*circshift(F_e,+0,dim) - 360*circshift(F_e,+1,dim) ...
+                    + 450*circshift(F_e,+2,dim) - 400*circshift(F_e,+3,dim) ...
+                    + 225*circshift(F_e,+4,dim) -  72*circshift(F_e,+5,dim) ...
+                    +  10*circshift(F_e,+6,dim))/(60*h);
+            id(dim) = {size(F,dim)-2:size(F,dim)};
+            id_e    = id; id_e(dim) = {size(Fd_e,dim)-2:size(Fd_e,dim)};
+            Fd(id{:}) = Fd_e(id_e{:});
         end
     elseif order == 2 % secend derivative
-        Fd = (-490*F ...
-              +270*circshift(F,-1)+270*circshift(F,1) ...
-               -27*circshift(F,-2) -27*circshift(F,2) ...
-                +2*circshift(F,-3)  +2*circshift(F,3))/(180*h^2);
-        if ~strcmp(boundary,"periodic")
-            Fd(1:3)       = (+  938*F(1:3) - 4014*F(2:4) ...
-                             + 7911*F(3:5) - 9490*F(4:6) ...
-                             + 7380*F(5:7) - 3618*F(6:8) ...
-                             + 1019*F(7:9) -  126*F(8:10))/(180*h^2);
-            Fd(end-2:end) = (+ 938*F(end-2:end)    - 4014*F(end-3:end-1) ...
-                             + 7911*F(end-4:end-2) - 9490*F(end-5:end-3) ...
-                             + 7380*F(end-6:end-4) - 3618*F(end-7:end-5) ...
-                             + 1019*F(end-8:end-6) -  126*F(end-9:end-7))/(180*h^2);
+        % Central
+        Fd = (+   2*circshift(F,-3,dim) -  27*circshift(F,-2,dim) ...
+              + 270*circshift(F,-1,dim) - 490*circshift(F,+0,dim) ...
+              + 270*circshift(F,+1,dim) -  27*circshift(F,+2,dim) ...
+              +   2*circshift(F,+3,dim))/(180*h^2);
+        if ~(strcmp(boundary,"periodic") || strcmp(boundary,"p"))
+            % Forward
+            id      = repmat({':'},1,ndims(F));
+            id(dim) = {1:10};
+            F_f  = F(id{:});
+            Fd_f = (+  938*circshift(F_f,-0,dim) - 4014*circshift(F_f,-1,dim) ...
+                    + 7911*circshift(F_f,-2,dim) - 9490*circshift(F_f,-3,dim) ...
+                    + 7380*circshift(F_f,-4,dim) - 3618*circshift(F_f,-5,dim) ...
+                    + 1019*circshift(F_f,-6,dim) -  126*circshift(F_f,-7,dim))/(180*h^2);
+            id(dim) = {1:3};
+            Fd(id{:}) = Fd_f(id{:});
+            % Backward
+            id      = repmat({':'},1,ndims(F));
+            id(dim) = {size(F,dim)-9:size(F,dim)};
+            F_e  = F(id{:});
+            Fd_e = (+  938*circshift(F_e,+0,dim) - 4014*circshift(F_e,+1,dim) ...
+                    + 7911*circshift(F_e,+2,dim) - 9490*circshift(F_e,+3,dim) ...
+                    + 7380*circshift(F_e,+4,dim) - 3618*circshift(F_e,+5,dim) ...
+                    + 1019*circshift(F_e,+6,dim) -  126*circshift(F_e,+7,dim))/(180*h^2);
+            id(dim) = {size(F,dim)-2:size(F,dim)};
+            id_e    = id; id_e(dim) = {size(Fd_e,dim)-2:size(Fd_e,dim)};
+            Fd(id{:}) = Fd_e(id_e{:});
         end
     end
+    Fd = reshape(Fd,F_size);
+    % Adding overlapping grids back
+    id      = repmat({':'},1,ndims(F));
+    id(dim) = {1:overlap};
+    Fd = cat(dim,Fd,Fd(id{:}));
 end
