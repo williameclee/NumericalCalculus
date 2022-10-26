@@ -1,5 +1,5 @@
 function Fd = nDiffFd1(F,varargin)
-%% nDiffFd1 Differentiation with two-point finite difference
+%% nDiffFd1 Differentiation with order 1 finite difference
 % INPUT:
 %   - F: The 1D array to be differentiated.
 %   - h: The uniform spacing between each element. The default value is 1.
@@ -26,7 +26,7 @@ function Fd = nDiffFd1(F,varargin)
     order    = 1;
     overlap  = 1;
     boundary = "wall";
-% Updating parameters
+    % Updating parameters
     p = inputParser;
         addRequired(p,"F");
         addOptional(p,"h",h);

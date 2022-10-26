@@ -1,5 +1,5 @@
 function Fd = nDiffFd4(F,varargin)
-%% nDiffFd4 Differentiation with four-point (central) finite difference
+%% nDiffFd4 Differentiation with order 4 finite difference
 % INPUT:
 %   - F: The 1D array to be differentiated.
 %   - h: The uniform spacing between each element. The default value is 1.

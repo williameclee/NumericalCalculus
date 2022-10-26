@@ -1,5 +1,5 @@
 function Fd = nDiffFd6(F,varargin)
-%% nDiffFd6 Differentiation with six-point (central) finite difference
+%% nDiffFd6 Differentiation with order 6 finite difference
 % INPUT:
 %   - F: The 1D array to be differentiated.
 %   - h: The uniform spacing between each element. The default value is 1.
